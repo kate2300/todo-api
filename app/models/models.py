@@ -1,5 +1,3 @@
-# app/models/models.py
-
 import enum
 from datetime import datetime
 
@@ -79,27 +77,22 @@ class User(Base):
         onupdate=func.now(),
     )
 
-    # relationships (связи)
-    # TODO: change relashionship
+    # relationships
 
-    created_projects: Mapped[list["Project"]] = relationship(
-        back_populates="creator",
-        foreign_keys="Project.creator_id",
+
+    user_project: Mapped[list["UserProject"]] = relationship(
+        back_populates="user",
+        cascade ="all, delete-orphan",
     )
-    assigned_projects: Mapped[list["Project"]] = relationship(
-        back_populates="performer",
-        foreign_keys="Project.performer_id",
+
+    user_task: Mapped[list["UserTask"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
-    created_tasks: Mapped[list["Task"]] = relationship(
-        back_populates="creator",
-        foreign_keys="Task.creator_id",
-    )
-    assigned_tasks: Mapped[list["Task"]] = relationship(
-        back_populates="performer",
-        foreign_keys="Task.performer_id",
-    )
+
 
 #TODO визуально лучше структурировать поля !
+
 class Project(Base):
     __tablename__ = "projects"
 
@@ -114,7 +107,7 @@ class Project(Base):
     status: Mapped[ProjectStatus] = mapped_column(
         SAEnum(ProjectStatus, name="project_status"),
         nullable=False,
-        server_default=ProjectStatus.active.value,
+        server_default= "active"
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -132,17 +125,17 @@ class Project(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
-# TODO  релейшеншипы поменять и убрать эти
-    # relationships (связи)
-    creator: Mapped["User"] = relationship(
-        back_populates="created_projects",
-        foreign_keys=[creator_id],
+
+    # relationships
+    user_project: Mapped[list["UserProject"]] = relationship(
+        back_populates="project",
+        cascade ="all, delete-orphan",
     )
-    performer: Mapped["User | None"] = relationship(
-        back_populates="assigned_projects",
-        foreign_keys=[performer_id],
+
+    task: Mapped[list["Task"]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
     )
-    tasks: Mapped[list["Task"]] = relationship(back_populates="project")
 
 
 class Task(Base):
@@ -158,22 +151,21 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-#TODO поменять сервер дефолт на явное значение ( как с юзер)
 
     status: Mapped[TaskStatus] = mapped_column(
         SAEnum(TaskStatus, name="task_status"),
         nullable=False,
-        server_default=TaskStatus.backlog.value,
+        server_default= "backlog"
     )
     priority: Mapped[PriorityLevel] = mapped_column(
         SAEnum(PriorityLevel, name="priority_level"),
         nullable=False,
-        server_default=PriorityLevel.medium.value,
+        server_default= "medium"
     )
     complexity: Mapped[ComplexityLevel] = mapped_column(
         SAEnum(ComplexityLevel, name="complexity_level"),
         nullable=False,
-        server_default=ComplexityLevel.medium.value,
+        server_default= "medium"
     )
 
     deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -186,11 +178,13 @@ class Task(Base):
     )
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # TODO  один релейшен с таблицей юзер таск ( эти удалить)
-    project: Mapped["Project"] = relationship(back_populates="tasks")
-    creator: Mapped["User"] = relationship(back_populates="created_tasks", foreign_keys=[creator_id])
-    performer: Mapped["User | None"] = relationship(back_populates="assigned_tasks", foreign_keys=[performer_id])
 
+    # relationships
+
+    user_project: Mapped[list["UserProject"]] = relationship(
+    back_populates="task",
+    cascade="all, delete-orphan",
+    )
 
 
 
@@ -210,6 +204,24 @@ class UserProject(Base):
     )
 
 
+    # relationships
+
+    user: Mapped[list["User"]] = relationship(
+        back_populates="user_project",
+        cascade="all, delete-orphan",
+    )
+
+    project: Mapped[list["Project"]] = relationship(
+        back_populates="user_project",
+        cascade="all, delete-orphan",
+    )
+    user_task: Mapped[list["UserTask"]] = relationship(
+        back_populates="user_project",
+        cascade="all, delete-orphan",
+    )
+
+
+
 class UserTask(Base):
     __tablename__ = "user_tasks"
 
@@ -224,4 +236,20 @@ class UserTask(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # relationships
+
+    user: Mapped[list["User"]] = relationship(
+        back_populates="user_task",
+        cascade="all, delete-orphan",
+    )
+
+    task: Mapped[list["Task"]] = relationship(
+        back_populates="user_task",
+        cascade="all, delete-orphan",
+    )
+    user_project: Mapped[list["UserProject"]] = relationship(
+        back_populates="user_task",
+        cascade="all, delete-orphan",
     )
