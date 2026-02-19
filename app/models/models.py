@@ -10,6 +10,7 @@ from sqlalchemy import (
     Text,
     func,
 )
+
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -91,16 +92,11 @@ class User(Base):
     )
 
 
-#TODO визуально лучше структурировать поля !
 
 class Project(Base):
     __tablename__ = "projects"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -126,6 +122,9 @@ class Project(Base):
         onupdate=func.now(),
     )
 
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+
     # relationships
 
     user_project: Mapped[list["UserProject"]] = relationship(
@@ -143,15 +142,9 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False)
-
-    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-
 
     status: Mapped[TaskStatus] = mapped_column(
         SAEnum(TaskStatus, name="task_status"),
@@ -179,6 +172,8 @@ class Task(Base):
     )
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     # relationships
 
@@ -188,8 +183,6 @@ class Task(Base):
     )
 
 
-
-# TODO Нужны релейшены в след двух таблицах
 class UserProject(Base):
     __tablename__ = "user_projects"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
