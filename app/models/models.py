@@ -127,6 +127,7 @@ class Project(Base):
     )
 
     # relationships
+
     user_project: Mapped[list["UserProject"]] = relationship(
         back_populates="project",
         cascade ="all, delete-orphan",
