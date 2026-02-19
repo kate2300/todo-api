@@ -218,6 +218,7 @@ class UserProject(Base):
 
 class UserTask(Base):
     __tablename__ = "user_tasks"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
