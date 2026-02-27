@@ -81,15 +81,9 @@ class User(Base):
     # relationships
 
 
-    user_project: Mapped[list["UserProject"]] = relationship(
-        back_populates="user",
-        cascade ="all, delete-orphan",
-    )
+    user_project= relationship('UserProject',back_populates='user')
+    user_task = relationship( 'UserTask',back_populates='user')
 
-    user_task: Mapped[list["UserTask"]] = relationship(
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
 
 
 
@@ -127,16 +121,9 @@ class Project(Base):
 
     # relationships
 
-    user_project: Mapped[list["UserProject"]] = relationship(
-        back_populates="project",
-        cascade ="all, delete-orphan",
-    )
-
-    task: Mapped[list["Task"]] = relationship(
-        back_populates="project",
-        cascade="all, delete-orphan",
-    )
-
+    user_project= relationship('UserProject',back_populates='project')
+    user_task = relationship( 'UserTask',back_populates='project')
+    task = relationship('Task',back_populates='project')
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -177,11 +164,8 @@ class Task(Base):
 
     # relationships
 
-    user_project: Mapped[list["UserProject"]] = relationship(
-    back_populates="task",
-    cascade="all, delete-orphan",
-    )
-
+    user_task = relationship( 'UserTask',back_populates='task')
+    user_project = relationship('UserProject', back_populates='task')
 
 class UserProject(Base):
     __tablename__ = "user_projects"
@@ -200,19 +184,9 @@ class UserProject(Base):
 
     # relationships
 
-    user: Mapped[list["User"]] = relationship(
-        back_populates="user_project",
-        cascade="all, delete-orphan",
-    )
-
-    project: Mapped[list["Project"]] = relationship(
-        back_populates="user_project",
-        cascade="all, delete-orphan",
-    )
-    user_task: Mapped[list["UserTask"]] = relationship(
-        back_populates="user_project",
-        cascade="all, delete-orphan",
-    )
+    user = relationship('User', back_populates='UserProject')
+    project = relationship('Project', back_populates='UserProject')
+    task = relationship('Task', back_populates='UserProject')
 
 
 
@@ -235,16 +209,6 @@ class UserTask(Base):
 
     # relationships
 
-    user: Mapped[list["User"]] = relationship(
-        back_populates="user_task",
-        cascade="all, delete-orphan",
-    )
-
-    task: Mapped[list["Task"]] = relationship(
-        back_populates="user_task",
-        cascade="all, delete-orphan",
-    )
-    user_project: Mapped[list["UserProject"]] = relationship(
-        back_populates="user_task",
-        cascade="all, delete-orphan",
-    )
+    user = relationship('User', back_populates='UserTask')
+    task = relationship('Task', back_populates= 'UserTask')
+    project = relationship('Project', back_populates='UserTask')
