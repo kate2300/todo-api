@@ -54,6 +54,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(30), nullable=False)
+    user_project_id: Mapped[int] = mapped_column(ForeignKey("user_projects.id"), primary_key=True)
+    user_task_id: Mapped[int] = mapped_column(ForeignKey("user_tasks.id"), primary_key=True)
 
     role: Mapped[UserRole] = mapped_column(
         SAEnum(UserRole, name="user_role"), nullable=False, server_default="user"
@@ -83,6 +85,9 @@ class Project(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    user_project_id: Mapped[int] = mapped_column(ForeignKey("user_projects.id"), primary_key=True)
+    user_task_id: Mapped[int] = mapped_column(ForeignKey("user_task.id"), primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
 
     status: Mapped[ProjectStatus] = mapped_column(
         SAEnum(ProjectStatus, name="project_status"),
@@ -122,10 +127,11 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    user_project_id: Mapped[int] = mapped_column(ForeignKey("user_projects.id"), primary_key=True)
+    user_task_id: Mapped[int] = mapped_column(ForeignKey("user_tasks.id"), primary_key=True)
     status: Mapped[TaskStatus] = mapped_column(
         SAEnum(TaskStatus, name="task_status"), nullable=False, server_default="backlog"
     )
@@ -163,7 +169,7 @@ class Task(Base):
     )
 
     # relationships
-
+    project = relationship("Project", back_populates="task")
     user_task = relationship("UserTask", back_populates="task")
     user_project = relationship("UserProject", back_populates="task")
 
@@ -174,7 +180,7 @@ class UserProject(Base):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
-
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -198,9 +204,7 @@ class UserTask(Base):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
-
-    # у тебя в схеме есть project_id — оставляю.
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
