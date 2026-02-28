@@ -2,7 +2,6 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import (
-
     DateTime,
     ForeignKey,
     Integer,
@@ -15,8 +14,6 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-
-
 
 
 class UserRole(str, enum.Enum):
@@ -49,21 +46,17 @@ class ComplexityLevel(str, enum.Enum):
     hard = "hard"
 
 
-
-
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(30), nullable=False)
-    username: Mapped[str] = mapped_column(String(30),unique=True, nullable=False)
+    username: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(30), nullable=False)
 
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="user_role"),
-        nullable=False,
-        server_default= 'user'
+        SAEnum(UserRole, name="user_role"), nullable=False, server_default="user"
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -80,11 +73,8 @@ class User(Base):
 
     # relationships
 
-
-    user_project= relationship('UserProject',back_populates='user')
-    user_task = relationship( 'UserTask',back_populates='user')
-
-
+    user_project = relationship("UserProject", back_populates="user")
+    user_task = relationship("UserTask", back_populates="user")
 
 
 class Project(Base):
@@ -97,7 +87,7 @@ class Project(Base):
     status: Mapped[ProjectStatus] = mapped_column(
         SAEnum(ProjectStatus, name="project_status"),
         nullable=False,
-        server_default= "active"
+        server_default="active",
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -117,13 +107,16 @@ class Project(Base):
     )
 
     creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    performer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
 
     # relationships
 
-    user_project= relationship('UserProject',back_populates='project')
-    user_task = relationship( 'UserTask',back_populates='project')
-    task = relationship('Task',back_populates='project')
+    user_project = relationship("UserProject", back_populates="project")
+    user_task = relationship("UserTask", back_populates="project")
+    task = relationship("Task", back_populates="project")
+
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -134,38 +127,46 @@ class Task(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     status: Mapped[TaskStatus] = mapped_column(
-        SAEnum(TaskStatus, name="task_status"),
-        nullable=False,
-        server_default= "backlog"
+        SAEnum(TaskStatus, name="task_status"), nullable=False, server_default="backlog"
     )
     priority: Mapped[PriorityLevel] = mapped_column(
         SAEnum(PriorityLevel, name="priority_level"),
         nullable=False,
-        server_default= "medium"
+        server_default="medium",
     )
     complexity: Mapped[ComplexityLevel] = mapped_column(
         SAEnum(ComplexityLevel, name="complexity_level"),
         nullable=False,
-        server_default= "medium"
+        server_default="medium",
     )
 
-    deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deadline: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    performer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
 
     # relationships
 
-    user_task = relationship( 'UserTask',back_populates='task')
-    user_project = relationship('UserProject', back_populates='task')
+    user_task = relationship("UserTask", back_populates="task")
+    user_project = relationship("UserProject", back_populates="task")
+
 
 class UserProject(Base):
     __tablename__ = "user_projects"
@@ -178,16 +179,17 @@ class UserProject(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
-
 
     # relationships
 
-    user = relationship('User', back_populates='UserProject')
-    project = relationship('Project', back_populates='UserProject')
-    task = relationship('Task', back_populates='UserProject')
-
+    user = relationship("User", back_populates="UserProject")
+    project = relationship("Project", back_populates="UserProject")
+    task = relationship("Task", back_populates="UserProject")
 
 
 class UserTask(Base):
@@ -204,11 +206,14 @@ class UserTask(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
     # relationships
 
-    user = relationship('User', back_populates='UserTask')
-    task = relationship('Task', back_populates= 'UserTask')
-    project = relationship('Project', back_populates='UserTask')
+    user = relationship("User", back_populates="UserTask")
+    task = relationship("Task", back_populates="UserTask")
+    project = relationship("Project", back_populates="UserTask")
