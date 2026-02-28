@@ -54,8 +54,6 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(30), nullable=False)
-    user_project_id: Mapped[int] = mapped_column(ForeignKey("user_projects.id"), primary_key=True)
-    user_task_id: Mapped[int] = mapped_column(ForeignKey("user_tasks.id"), primary_key=True)
 
     role: Mapped[UserRole] = mapped_column(
         SAEnum(UserRole, name="user_role"), nullable=False, server_default="user"
@@ -75,8 +73,8 @@ class User(Base):
 
     # relationships
 
-    user_project = relationship("UserProject", back_populates="user")
-    user_task = relationship("UserTask", back_populates="user")
+    user_projects = relationship("UserProject", back_populates="user")
+    user_tasks = relationship("UserTask", back_populates="user")
 
 
 class Project(Base):
@@ -85,9 +83,7 @@ class Project(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    user_project_id: Mapped[int] = mapped_column(ForeignKey("user_projects.id"), primary_key=True)
-    user_task_id: Mapped[int] = mapped_column(ForeignKey("user_task.id"), primary_key=True)
-    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
+    #task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
 
     status: Mapped[ProjectStatus] = mapped_column(
         SAEnum(ProjectStatus, name="project_status"),
@@ -112,15 +108,11 @@ class Project(Base):
     )
 
     creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    performer_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
-    )
+    performer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
-    # relationships
-
-    user_project = relationship("UserProject", back_populates="project")
-    user_task = relationship("UserTask", back_populates="project")
-    task = relationship("Task", back_populates="project")
+    # Relationships
+    tasks = relationship("Task", back_populates="project")
+    user_projects = relationship("UserProject", back_populates="project")
 
 
 class Task(Base):
@@ -130,8 +122,6 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False)
-    user_project_id: Mapped[int] = mapped_column(ForeignKey("user_projects.id"), primary_key=True)
-    user_task_id: Mapped[int] = mapped_column(ForeignKey("user_tasks.id"), primary_key=True)
     status: Mapped[TaskStatus] = mapped_column(
         SAEnum(TaskStatus, name="task_status"), nullable=False, server_default="backlog"
     )
@@ -163,24 +153,20 @@ class Task(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    performer_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
-    )
+    creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    performer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
-    # relationships
-    project = relationship("Project", back_populates="task")
-    user_task = relationship("UserTask", back_populates="task")
-    user_project = relationship("UserProject", back_populates="task")
+    # Relationships
+    project = relationship("Project", back_populates="tasks")
+    user_tasks = relationship("UserTask", back_populates="task")
 
 
 class UserProject(Base):
     __tablename__ = "user_projects"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
-    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -191,20 +177,16 @@ class UserProject(Base):
         onupdate=func.now(),
     )
 
-    # relationships
-
-    user = relationship("User", back_populates="UserProject")
-    project = relationship("Project", back_populates="UserProject")
-    task = relationship("Task", back_populates="UserProject")
+    # Relationships
+    user = relationship("User", back_populates="user_projects")
+    project = relationship("Project", back_populates="user_projects")
 
 
 class UserTask(Base):
     __tablename__ = "user_tasks"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -218,6 +200,5 @@ class UserTask(Base):
 
     # relationships
 
-    user = relationship("User", back_populates="UserTask")
-    task = relationship("Task", back_populates="UserTask")
-    project = relationship("Project", back_populates="UserTask")
+    user = relationship("User", back_populates="user_tasks")
+    task = relationship("Task", back_populates="user_tasks")
