@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
-
+from app.models.models import UserRole
+from datetime import datetime
 
 
 class UserCreate(BaseModel):
@@ -15,5 +16,7 @@ class UserRead(BaseModel):
     name: str
     username: str
     email: EmailStr
-
+    role: UserRole
+    created_at: datetime
+    updated_at: datetime
 
