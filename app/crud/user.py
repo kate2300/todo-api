@@ -11,7 +11,7 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
 
 
 async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
-    # EmailStr -> str (для типизации и чтобы PyCharm не ругался)
+
     email_str = str(user_in.email)
 
     existing = await get_user_by_email(db, email_str)
@@ -24,7 +24,7 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
         email=email_str,
         password_hash=user_in.password,
     )
-    #dhtv временное решение (помогите!!!!!!
+
 
     db.add(user)
     await db.commit()
